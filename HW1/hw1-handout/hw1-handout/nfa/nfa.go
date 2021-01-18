@@ -20,55 +20,69 @@ func Reachable(
 	// `input` is a (possible empty) list of symbols to apply.
 	input []rune,
 ) bool {
-	// TODO: Write the Reachable function,
+	// FINISHED: Write the Reachable function,
 	// return true if the nfa accepts the input and can reach the final state with that input,
 	// return false otherwise
-	if len(input) <= 0 {
+
+	if len(input) == 0 { // Input nothing
+		if start == final { // Corner case: start state = target state
+			return true // Reachable since not moving
+		}
 		return false
 	}
-	firstRune := input[0]
 
-	canReach := false      // Set deafult return value to false
-	currentState := start  // Set the start state as the current state
-	var nextStates []state // Create a temp container to store next states
-	var stateQueue []state // Create a queue to store current states
-	queueLength := 0       // Set default queue length
-	nextStates := TransitionFunction(currentState, firstRune)
-	for stateIndex := 0; stateIndex < len(states); stateIndex++ {
-		stateQueue = append(stateQueue, states[stateIndex])
+	var nextStates []state                            // Create a temp container to store next states
+	var stateQueue []state                            // Create a queue to store current states
+	transitionType := TransitionFunction(transitions) // New a TransitionFunction type
+	canReach := false                                 // Set deafult return value to false
+	currentState := start                             // Set the start state as the current state
+	firstRune := input[0]                             // Get the first moving command
+	queueLength := 0                                  // Set default queue length
+
+	// Get the possibility states by calling transition function
+	// with the current state and the command character
+	nextStates = transitionType(currentState, firstRune)
+
+	// Append all possible states to stateQueue
+	for stateIndex := 0; stateIndex < len(nextStates); stateIndex++ {
+		stateQueue = append(stateQueue, nextStates[stateIndex])
 	}
-	nextStates = nil // remove data in temp container
-	queueLength := len(stateQueue)
+	nextStates = nil              // remove data in temp container
+	queueLength = len(stateQueue) // get the queue length
 
+	// For each command character in the input sequence
 	for i := 1; i < len(input); i++ {
-		currentRune := input[i]
-		for queueIndex := 0; queueIndex < queueLength; queueIndex++ {
-			temp := stateQueue[0] // first element in queue
+		currentRune := input[i] // get the current character
 
+		// Use the character as transition command for every states in the queue
+		for queueIndex := 0; queueIndex < queueLength; queueIndex++ {
+			temp := stateQueue[0]                          // Pick first element from queue
+			stateQueue = stateQueue[1:]                    // Poll the first element from the queue
+			nextStates = transitionType(temp, currentRune) // Find its possible transitions
+			if len(nextStates) == 0 {                      // Current state has no transition to other states
+				nextStates = nil // Reset and empty the possible transitions container
+			} else { // Current staet has transitions to other states
+				// For every transable states
+				for stateIndex := 0; stateIndex < len(nextStates); stateIndex++ {
+					// Push it into the queue
+					stateQueue = append(stateQueue, nextStates[stateIndex])
+				}
+				nextStates = nil // Reset and empty the possible transitions container
+			}
+		}
+		queueLength = len(stateQueue) // Update the length of the queue
+	}
+
+	for finalIndex := 0; finalIndex < len(stateQueue); finalIndex++ {
+		// If the target state is reachable after all command
+		if stateQueue[finalIndex] == final {
+			canReach = true
 		}
 	}
+	return canReach
 }
 
-// Pseudo - 21:24 version
-// start 0
-// abababa
-// a: [1,2] queue1
-// queue1.dequeu at many times as possble
-// got the next states and save to queue2
-
-// b: [0]  queue2
-// queue2.dequeue as ,,,,,
-// got the next states and save to queue1
-// ....
-// a: [1,2]
-// b: [0]
-// a: [1,2]
-// b: [0]
-// a: [1,2]
-// for the non empty queue (queue1 or queue2)
-// dequeu and see if match the target
-
-// Pseudo - 21:37
+// Pseudo - 2021.1.17 21:37
 // start 0
 // abababa
 // a: [1, 2] queue length = 2
@@ -80,24 +94,3 @@ func Reachable(
 // again
 // [1,2] queue length = 2
 // ...
-
-// Pseudo afternoon version
-// queue to store final state node
-
-// for each char in sequence:
-// 	nextStateAmount = determine how many states we can reach from current state
-// 	if nextStateAmount = 0:
-// 		enqueue current state
-// 	if nextStateAmount = 1;
-// 		current state = next state
-// 	if nextStateAmount > 1;
-// 		recursioncall(next state1)
-// 		recursioncall(next state2)
-//         ...
-//         recursioncall(next stateX)
-
-// while queue is not empty
-// 	poll queue one by one
-// 	if equals to target state
-// 		return true;
-// 	else false
