@@ -91,6 +91,17 @@ func TestReachable(t *testing.T) {
 		{"langTransitions", langTransitions, 0, 0, []rune{'a', 'b', 'a', 'a'}, false},
 
 		// TODO add more tests for 100% test coverage
+		{"expTransitions", expTransitions, 1, 0, []rune{'a'}, false},
+		{"expTransitions", expTransitions, 1, 2, []rune{'a', 'b', 'a'}, false},
+		{"expTransitions", expTransitions, 1, 0, []rune{'b', 'a', 'b'}, true},
+		{"expTransitions", expTransitions, 1, 0, []rune{'b', 'a', 'b', 'a', 'b'}, true},
+		{"expTransitions", expTransitions, 1, 1, nil, true},
+
+		{"expTransitions", expTransitions, 2, 0, nil, false},
+		{"expTransitions", expTransitions, 2, 2, nil, true},
+		{"expTransitions", expTransitions, 2, 0, []rune{'b', 'a', 'b'}, false},
+		{"expTransitions", expTransitions, 2, 0, []rune{'b', 'a', 'b', 'a', 'b'}, false},
+		{"expTransitions", expTransitions, 2, 2, []rune{'b', 'a'}, false},
 	}
 
 	for _, test := range tests {
