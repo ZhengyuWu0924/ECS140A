@@ -47,13 +47,12 @@ func Reachable(
 	for stateIndex := 0; stateIndex < len(nextStates); stateIndex++ {
 		stateQueue = append(stateQueue, nextStates[stateIndex])
 	}
-	nextStates = nil              // remove data in temp container
-	queueLength = len(stateQueue) // get the queue length
+	nextStates = nil // remove data in temp container
 
 	// For each command character in the input sequence
 	for i := 1; i < len(input); i++ {
-		currentRune := input[i] // get the current character
-
+		currentRune := input[i]       // get the current character
+		queueLength = len(stateQueue) // get the queue length
 		// Use the character as transition command for every states in the queue
 		for queueIndex := 0; queueIndex < queueLength; queueIndex++ {
 			temp := stateQueue[0]                          // Pick first element from queue
@@ -70,7 +69,7 @@ func Reachable(
 				nextStates = nil // Reset and empty the possible transitions container
 			}
 		}
-		queueLength = len(stateQueue) // Update the length of the queue
+		// queueLength = len(stateQueue) // Update the length of the queue
 	}
 
 	for finalIndex := 0; finalIndex < len(stateQueue); finalIndex++ {

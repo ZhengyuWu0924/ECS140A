@@ -4,6 +4,9 @@ package matrix
 
 // AreAdjacent returns true iff a and b are adjacent in lst.
 func AreAdjacent(lst []int, a, b int) bool {
+	if lst == nil || len(lst) == 0 {
+		return false
+	}
 	for i := 0; i < len(lst); i++ {
 		if lst[i] == a {
 			if i-1 >= 0 && lst[i-1] == b {
@@ -18,14 +21,11 @@ func AreAdjacent(lst []int, a, b int) bool {
 
 // Transpose returns the transpose of the 2D matrix mat.
 func Transpose(mat [][]int) [][]int {
+	if mat == nil || len(mat) == 0 || len(mat[0]) == 0 {
+		return mat
+	}
 	row := len(mat)
-	if row == 0 {
-		return mat
-	}
 	col := len(mat[0])
-	if col == 0 {
-		return mat
-	}
 	res := make([][]int, col)
 	for i := 0; i < col; i++ {
 		res[i] = make([]int, row)
@@ -50,7 +50,7 @@ func AreNeighbors(mat [][]int, a, b int) bool {
 					return true
 				} else if j-1 >= 0 && mat[i][j-1] == b {
 					return true
-				} else if j+1 < len(mat[i]) && mat[i][j+1] == b{
+				} else if j+1 < len(mat[i]) && mat[i][j+1] == b {
 					return true
 				}
 			}
@@ -58,4 +58,3 @@ func AreNeighbors(mat [][]int, a, b int) bool {
 	}
 	return false
 }
-

@@ -24,7 +24,12 @@ func TestAreAdjacent(t *testing.T) {
 		{[]int{1, 2, 1}, 1, 2, true},
 		{[]int{1, 2, 1}, 1, 4, false},
 		{[]int{1, 2, 1, 4}, 1, 4, true},
+
 		// TODO add more tests for 100% test coverage
+		{[]int{1, 3}, 1, 4, false},
+		{[]int{1, 3}, 1, 3, true},
+		{[]int{1, 3}, 4, 1, false},
+		{[]int{3, 1}, 4, 5, false},
 	}
 	for i, test := range tests {
 		func() {
@@ -54,6 +59,7 @@ func TestTranspose(t *testing.T) {
 		{[][]int{{1, 2}, {3, 4}}, [][]int{{1, 3}, {2, 4}}},
 		{[][]int{{1, 3}, {2, 4}}, [][]int{{1, 2}, {3, 4}}},
 		// TODO add more tests for 100% test coverage
+		{[][]int{{}}, [][]int{{}}},
 	}
 	for i, test := range tests {
 		func() {
@@ -88,6 +94,8 @@ func TestAreNeighbors(t *testing.T) {
 		{[][]int{{1, 2, 3}, {4, 5, 6}}, 2, 6, false},
 		{[][]int{{1, 2, 3}, {4, 5, 6}}, 1, 6, false},
 		// TODO if needed, add more tests for 100% test coverage
+		{[][]int{{1, 2, 3}, {4, 5, 6}}, 4, 1, true},
+		{[][]int{{1, 2, 3}, {4, 5, 6}}, 3, 2, true},
 	}
 	for i, test := range tests {
 		func() {
