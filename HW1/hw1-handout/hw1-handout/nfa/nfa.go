@@ -99,10 +99,12 @@ func backtrack(
 	} else {
 		firstRune := input[0]
 		input = input[1:]
-
 		nextStates := getTrans(start, firstRune)
 		if len(nextStates) != 0 {
 			for i := 0; i < len(nextStates); i++ {
+				if res == true {
+					break
+				}
 				backtrack(trans, nextStates[i], final, input)
 			}
 		}
