@@ -2,6 +2,7 @@ package term
 
 import (
 	"errors"
+	"fmt"
 )
 
 // ErrParser is the error value returned by the Parser if the string is not a
@@ -9,7 +10,6 @@ import (
 // See also https://golang.org/pkg/errors/#New
 // and // https://golang.org/pkg/builtin/#error
 var ErrParser = errors.New("parser error")
-
 //
 // <term>     ::= ATOM | NUM | VAR | <compound>
 // <compound> ::= <functor> LPAR <args> RPAR
@@ -19,11 +19,129 @@ var ErrParser = errors.New("parser error")
 
 // Parser is the interface for the term parser.
 // Do not change the definition of this interface.
+
+type P struct{
+	term *Term
+	tokenSlice []*Token
+	idx int
+}
+
 type Parser interface {
 	Parse(string) (*Term, error)
 }
 
 // NewParser creates a struct of a type that satisfies the Parser interface.
 func NewParser() Parser {
-	panic("TODO: implement NewParser")
+	p := &P{idx: 0}
+	return p
 }
+
+func (p *P) isTermArgs() bool {
+	leftMinusRight := 0
+	for i := p.idx + 1; i < len(p.tokenSlice); i++ {
+		if p.tokenSlice[i].typ == tokenComma && leftMinusRight == 0 {
+			return true
+		}
+		if p.tokenSlice[i].typ == tokenLpar {
+			leftMinusRight++
+		} else if p.tokenSlice[i].typ == tokenRpar {
+			leftMinusRight--
+		}
+	}
+	return false
+}
+
+func (p *P) Parse(input string) (*Term, error) {
+	if input == "" {
+		return nil, nil
+	}
+	p.tokenSlice = make([]*Token, 0)
+	lex := newLexer(input)
+	for i := 0; ; i++ {
+		token, _ := lex.next()
+		p.tokenSlice = append(p.tokenSlice, token)
+		fmt.Println("token type", token.typ)
+		if token.typ == tokenEOF {
+			break
+		}
+	}
+	p.term = &Term{}
+	p.termF(p.term)
+	fmt.Println(p.idx)
+	if p.tokenSlice[p.idx].typ == tokenEOF{
+		return p.term, nil
+	}
+	return nil, errors.New("Invalid Term")
+}
+
+func (p *P) termF(term *Term) {
+	if p.tokenSlice[p.idx].typ == tokenAtom {
+		if p.tokenSlice[p.idx + 1].typ == tokenLpar{
+			term.Typ = TermCompound
+			p.compoundF(term)
+		} else {
+			term.Typ = TermAtom
+			// term.Literal = p.tokenSlice[p.idx].literal
+			p.match(tokenAtom, term)
+		}
+	} else if p.tokenSlice[p.idx].typ == tokenVariable {
+		term.Typ = TermVariable
+		// term.Literal = p.tokenSlice[p.idx].literal
+		fmt.Println("line 89 matching")
+		p.match(tokenVariable, term)
+	} else if p.tokenSlice[p.idx].typ == tokenNumber {
+		term.Typ = TermNumber
+		// term.Literal = p.tokenSlice[p.idx].literal
+		fmt.Println("line 94 matching")
+		p.match(tokenNumber, term)
+		fmt.Println("line 96",p.idx)
+	} else {}
+}
+
+func (p *P) compoundF(term *Term) {
+	term.Functor = &Term{}
+	// newTerm := &Term{}
+	// term.Args = append(term.Args, newTerm)
+	if p.tokenSlice[p.idx].typ == tokenAtom {
+		// term.Functor.Typ = TermAtom
+		// term.Functor.Literal = p.tokenSlice[p.idx].literal
+		p.functorF(term.Functor)
+		fmt.Println("line 108 matching")
+		p.match(tokenLpar, term)
+		p.argsF(term)
+		fmt.Println("line 111 matching")
+		p.match(tokenRpar, term)
+	}
+}
+
+func (p *P) functorF(term *Term) {
+	term.Typ = TermAtom
+	fmt.Println("line 118 matching")
+	p.match(tokenAtom, term)
+}
+
+func (p *P) argsF(term *Term) {
+	newTerm := &Term{}
+	term.Args = append(term.Args, newTerm)
+	if p.isTermArgs() {
+		p.termF(newTerm)
+		p.match(tokenComma, term)
+		p.argsF(term)
+	} else {
+		p.termF(newTerm)
+	}
+}
+
+func (p *P) match(typ tokenType, term *Term) {
+	fmt.Println(typ, p.tokenSlice[p.idx].typ)
+	if p.tokenSlice[p.idx].typ == typ {
+		switch typ {
+		case tokenAtom, tokenNumber, tokenVariable:
+			term.Literal = p.tokenSlice[p.idx].literal
+		}
+		p.idx++
+		fmt.Println(p.idx)
+	} else {		
+	}
+}
+
