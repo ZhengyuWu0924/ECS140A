@@ -202,6 +202,38 @@ func TestComputeBranchFactors(t *testing.T) {
 		}
 		return result
 	}
+
+	/*add two tests*/
+	func nested_for_if_goto() {
+		/* local variable definition */
+		var a int = 10
+	 
+		/* do loop execution */
+		LOOP: for a < 20 {
+		   if a == 15 {
+			  /* skip the iteration */
+			  a = a + 1
+			  goto LOOP
+		   }
+		   fmt.Printf("value of a: %d\n", a)
+		   a++     
+		}  
+	 }
+
+	 func nested_for_if_break_continue_fallthrough() {
+		 a := 10
+		 for a < 20 {
+			 if a == 10 {
+				 continue
+			 }
+			 if a == 15 {
+				fallthrough
+			 }
+			 if a == 18 {
+				 break
+			 }
+		 }
+	 }
 	`
 
 	tests := []struct {
@@ -220,6 +252,9 @@ func TestComputeBranchFactors(t *testing.T) {
 		{"mixed_switch_no_default_for_if", 3},
 		{"single_typeswitch_no_default", 1},
 		{"nested_if_no_else", 3},
+		/*add two tests*/
+		{"nested_for_if_goto",3},
+		{"nested_for_if_break_continue_fallthrough",7},
 	}
 
 	branch_factors := ComputeBranchFactors(test_code)
