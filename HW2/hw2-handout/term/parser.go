@@ -2,7 +2,7 @@ package term
 
 import (
 	"errors"
-	"fmt"
+	// "fmt"
 )
 
 // ErrParser is the error value returned by the Parser if the string is not a
@@ -24,6 +24,8 @@ type P struct{
 	term *Term
 	tokenSlice []*Token
 	idx int
+	isValid bool
+	m map[string]*Term
 }
 
 type Parser interface {
@@ -32,7 +34,7 @@ type Parser interface {
 
 // NewParser creates a struct of a type that satisfies the Parser interface.
 func NewParser() Parser {
-	p := &P{idx: 0}
+	p := &P{term: &Term{}, idx: 0, tokenSlice: make([]*Token, 0), isValid: true, m: make(map[string]*Term)}
 	return p
 }
 
@@ -51,24 +53,40 @@ func (p *P) isTermArgs() bool {
 	return false
 }
 
+func (p *P) toDAG(term *Term) *Term {
+	name := term.String()
+	if val, ok := p.m[name]; ok{
+		return val
+	}
+	p.m[name] = term
+	if term.Typ == TermCompound{
+		term.Functor = p.toDAG(term.Functor)
+		for i := 0; i < len(term.Args); i++{
+			term.Args[i] = p.toDAG(term.Args[i])
+		}
+	}
+	return term
+}
+
 func (p *P) Parse(input string) (*Term, error) {
 	if input == "" {
 		return nil, nil
 	}
-	p.tokenSlice = make([]*Token, 0)
+	// p.tokenSlice = make([]*Token, 0)
 	lex := newLexer(input)
 	for i := 0; ; i++ {
 		token, _ := lex.next()
 		p.tokenSlice = append(p.tokenSlice, token)
-		fmt.Println("token type", token.typ)
+		// fmt.Println("token type", token.typ)
 		if token.typ == tokenEOF {
 			break
 		}
 	}
-	p.term = &Term{}
+	// p.term = &Term{}
 	p.termF(p.term)
-	fmt.Println(p.idx)
-	if p.tokenSlice[p.idx].typ == tokenEOF{
+	// fmt.Println(p.idx)
+	if p.tokenSlice[p.idx].typ == tokenEOF && p.isValid == true{
+		p.toDAG(p.term)
 		return p.term, nil
 	}
 	return nil, errors.New("Invalid Term")
@@ -82,20 +100,25 @@ func (p *P) termF(term *Term) {
 		} else {
 			term.Typ = TermAtom
 			// term.Literal = p.tokenSlice[p.idx].literal
+			// p.m[term.Literal] = term
 			p.match(tokenAtom, term)
 		}
 	} else if p.tokenSlice[p.idx].typ == tokenVariable {
 		term.Typ = TermVariable
 		// term.Literal = p.tokenSlice[p.idx].literal
-		fmt.Println("line 89 matching")
+		// p.m[term.Literal] = term
+		// fmt.Println("line 89 matching")
 		p.match(tokenVariable, term)
 	} else if p.tokenSlice[p.idx].typ == tokenNumber {
 		term.Typ = TermNumber
 		// term.Literal = p.tokenSlice[p.idx].literal
-		fmt.Println("line 94 matching")
+		// p.m[term.Literal] = term
+		// fmt.Println("line 94 matching")
 		p.match(tokenNumber, term)
-		fmt.Println("line 96",p.idx)
-	} else {}
+		// fmt.Println("line 96",p.idx)
+	} else {
+		p.isValid = false
+	}
 }
 
 func (p *P) compoundF(term *Term) {
@@ -105,22 +128,28 @@ func (p *P) compoundF(term *Term) {
 	if p.tokenSlice[p.idx].typ == tokenAtom {
 		// term.Functor.Typ = TermAtom
 		// term.Functor.Literal = p.tokenSlice[p.idx].literal
+		// if val, ok := p.m[p.tokenSlice[p.idx].literal]; ok{
+		// 	term.Functor = val
+		// } else {
+		// 	term.Functor = &Term{}
+		// }
 		p.functorF(term.Functor)
-		fmt.Println("line 108 matching")
+		// fmt.Println("line 108 matching")
 		p.match(tokenLpar, term)
 		p.argsF(term)
-		fmt.Println("line 111 matching")
+		// fmt.Println("line 111 matching")
 		p.match(tokenRpar, term)
+		// p.m[term.String()] = term
 	}
 }
 
 func (p *P) functorF(term *Term) {
 	term.Typ = TermAtom
-	fmt.Println("line 118 matching")
+	// fmt.Println("line 118 matching")
 	p.match(tokenAtom, term)
 }
 
-func (p *P) argsF(term *Term) {
+func (p *P) argsF(term *Term) {	
 	newTerm := &Term{}
 	term.Args = append(term.Args, newTerm)
 	if p.isTermArgs() {
@@ -133,15 +162,16 @@ func (p *P) argsF(term *Term) {
 }
 
 func (p *P) match(typ tokenType, term *Term) {
-	fmt.Println(typ, p.tokenSlice[p.idx].typ)
+	// fmt.Println(typ, p.tokenSlice[p.idx].typ)
 	if p.tokenSlice[p.idx].typ == typ {
 		switch typ {
 		case tokenAtom, tokenNumber, tokenVariable:
 			term.Literal = p.tokenSlice[p.idx].literal
 		}
 		p.idx++
-		fmt.Println(p.idx)
-	} else {		
+		// fmt.Println(p.idx)
+	} else {
+		p.isValid = false		
 	}
 }
 

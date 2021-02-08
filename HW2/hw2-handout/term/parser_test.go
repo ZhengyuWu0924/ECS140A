@@ -8,18 +8,20 @@ import (
 func TestParserInvalidTerms(t *testing.T) {
 	for idx, input := range []string{
 		// Invalid terms
-		// "f)",
+		"f)",
 		"f()",
-		// "f((",
-		// "f(1)g",
-		// ",f(1)",
-		// "f(1),",
+		"f((",
+		"f(1)g",
+		",f(1)",
+		"f(1),",
 		"f(X",
-		// "(X, 1)",
-		// "X, 1)",
-		// ", 1)",
-		// "F(X)",
-		// "123(X)",
+		"(X, 1)",
+		"X, 1)",
+		", 1)",
+		"F(X)",
+		"123(X)",
+		"f(f())",
+		"X,X",
 		// TODO add more tests for 100% test coverage
 	} {
 		func() {
@@ -155,116 +157,116 @@ func TestParseTermWithoutSharing(t *testing.T) {
 	}
 }
 
-// func termWithSharingTest0() (string, *Term) {
-// 	X := &Term{Typ: TermVariable, Literal: "X"}
-// 	return "rel(X, X)", &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "rel"},
-// 		Args: []*Term{
-// 			X,
-// 			X,
-// 		},
-// 	}
-// }
+func termWithSharingTest0() (string, *Term) {
+	X := &Term{Typ: TermVariable, Literal: "X"}
+	return "rel(X, X)", &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "rel"},
+		Args: []*Term{
+			X,
+			X,
+		},
+	}
+}
 
-// func termWithSharingTest1() (string, *Term) {
-// 	X := &Term{Typ: TermVariable, Literal: "X"}
-// 	return "foo  ( X ,X, X)  ", &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "foo"},
-// 		Args: []*Term{
-// 			X,
-// 			X,
-// 			X,
-// 		},
-// 	}
-// }
+func termWithSharingTest1() (string, *Term) {
+	X := &Term{Typ: TermVariable, Literal: "X"}
+	return "foo  ( X ,X, X)  ", &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "foo"},
+		Args: []*Term{
+			X,
+			X,
+			X,
+		},
+	}
+}
 
-// func termWithSharingTest2() (string, *Term) {
-// 	X := &Term{Typ: TermVariable, Literal: "X"}
-// 	return " foo( X, X ,f (X) )", &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "foo"},
-// 		Args: []*Term{
-// 			X,
-// 			X,
-// 			&Term{
-// 				Typ:     TermCompound,
-// 				Functor: &Term{Typ: TermAtom, Literal: "f"},
-// 				Args: []*Term{
-// 					X,
-// 				}},
-// 		},
-// 	}
-// }
+func termWithSharingTest2() (string, *Term) {
+	X := &Term{Typ: TermVariable, Literal: "X"}
+	return " foo( X, X ,f (X) )", &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "foo"},
+		Args: []*Term{
+			X,
+			X,
+			&Term{
+				Typ:     TermCompound,
+				Functor: &Term{Typ: TermAtom, Literal: "f"},
+				Args: []*Term{
+					X,
+				}},
+		},
+	}
+}
 
-// func termWithSharingTest3() (string, *Term) {
-// 	f := &Term{Typ: TermAtom, Literal: "f"}
-// 	X := &Term{Typ: TermVariable, Literal: "X"}
-// 	fX := &Term{Typ: TermCompound, Functor: f, Args: []*Term{X}}
-// 	return "foo ( X, X , X, f(X), f(f (X) ))", &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "foo"},
-// 		Args: []*Term{
-// 			X,
-// 			X,
-// 			X,
-// 			fX,
-// 			&Term{
-// 				Typ:     TermCompound,
-// 				Functor: f,
-// 				Args: []*Term{
-// 					fX,
-// 				}},
-// 		},
-// 	}
-// }
+func termWithSharingTest3() (string, *Term) {
+	f := &Term{Typ: TermAtom, Literal: "f"}
+	X := &Term{Typ: TermVariable, Literal: "X"}
+	fX := &Term{Typ: TermCompound, Functor: f, Args: []*Term{X}}
+	return "foo ( X, X , X, f(X), f(f (X) ))", &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "foo"},
+		Args: []*Term{
+			X,
+			X,
+			X,
+			fX,
+			&Term{
+				Typ:     TermCompound,
+				Functor: f,
+				Args: []*Term{
+					fX,
+				}},
+		},
+	}
+}
 
-// func termWithSharingTest4() (string, *Term) {
-// 	fX := &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "f"},
-// 		Args: []*Term{
-// 			&Term{Typ: TermVariable, Literal: "X"},
-// 		},
-// 	}
-// 	return "rel( f( X ) , f (X) )", &Term{
-// 		Typ:     TermCompound,
-// 		Functor: &Term{Typ: TermAtom, Literal: "rel"},
-// 		Args: []*Term{
-// 			fX,
-// 			fX,
-// 		},
-// 	}
-// }
+func termWithSharingTest4() (string, *Term) {
+	fX := &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "f"},
+		Args: []*Term{
+			&Term{Typ: TermVariable, Literal: "X"},
+		},
+	}
+	return "rel( f( X ) , f (X) )", &Term{
+		Typ:     TermCompound,
+		Functor: &Term{Typ: TermAtom, Literal: "rel"},
+		Args: []*Term{
+			fX,
+			fX,
+		},
+	}
+}
 
-// func TestParseTermWithSharing(t *testing.T) {
-// 	for idx, testGenerator := range []termTestGeneratorFunction{
-// 		termWithSharingTest0,
-// 		termWithSharingTest1,
-// 		termWithSharingTest2,
-// 		termWithSharingTest3,
-// 		termWithSharingTest4,
-// 	} {
-// 		func() {
-// 			defer func() {
-// 				if r := recover(); r != nil {
-// 					input, _ := testGenerator()
-// 					t.Errorf("\nin test %d (\"%s\") panic: %s", idx, input, r)
-// 				}
-// 			}()
-// 			p := NewParser()
-// 			input, expected := testGenerator()
-// 			actual, err := p.Parse(input)
-// 			if err != nil {
-// 				t.Errorf("\nin test %d (\"%s\") parser got unexpected error: %#v", idx, input, err)
-// 			}
-// 			if areIsomorphic, err := checkIsomorphic(expected, actual); !areIsomorphic {
-// 				t.Errorf("\nin test %d (\"%s\")%s", idx, input, err)
-// 			}
-// 		}()
-// 	}
-// }
+func TestParseTermWithSharing(t *testing.T) {
+	for idx, testGenerator := range []termTestGeneratorFunction{
+		termWithSharingTest0,
+		termWithSharingTest1,
+		termWithSharingTest2,
+		termWithSharingTest3,
+		termWithSharingTest4,
+	} {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					input, _ := testGenerator()
+					t.Errorf("\nin test %d (\"%s\") panic: %s", idx, input, r)
+				}
+			}()
+			p := NewParser()
+			input, expected := testGenerator()
+			actual, err := p.Parse(input)
+			if err != nil {
+				t.Errorf("\nin test %d (\"%s\") parser got unexpected error: %#v", idx, input, err)
+			}
+			if areIsomorphic, err := checkIsomorphic(expected, actual); !areIsomorphic {
+				t.Errorf("\nin test %d (\"%s\")%s", idx, input, err)
+			}
+		}()
+	}
+}
 
 func checkIsomorphic(expected, actual *Term) (bool, error) {
 	matchTerms := make(map[*Term]*Term)
