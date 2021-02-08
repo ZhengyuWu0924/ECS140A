@@ -253,8 +253,8 @@ func TestComputeBranchFactors(t *testing.T) {
 		{"single_typeswitch_no_default", 1},
 		{"nested_if_no_else", 3},
 		/*add two tests*/
-		{"nested_for_if_goto",3},
-		{"nested_for_if_break_continue_fallthrough",7},
+		{"nested_for_if_goto", 3},
+		{"nested_for_if_break_continue_fallthrough", 7},
 	}
 
 	branch_factors := ComputeBranchFactors(test_code)

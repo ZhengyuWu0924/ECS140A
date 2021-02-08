@@ -10,12 +10,12 @@ func branchCount(fn *ast.FuncDecl) uint {
 	// TODO: Write the branchCount function,
 	// count the number of branching statements in function fn
 	count := uint(0)
-	ast.Inspect(fn, func (node ast.Node) bool {
-        switch node.(type) {
+	ast.Inspect(fn, func(node ast.Node) bool {
+		switch node.(type) {
 		case *ast.IfStmt:
-            count += 1
+			count += 1
 		case *ast.SwitchStmt:
-            count += 1
+			count += 1
 		case *ast.ForStmt:
 			count += 1
 		case *ast.RangeStmt:
@@ -24,11 +24,11 @@ func branchCount(fn *ast.FuncDecl) uint {
 			count += 1
 		case *ast.BranchStmt:
 			count += 1
-        }
-        // If we return true, we keep recursing under this AST node.
-        // If we return false, we won't visit anything under this AST node.
-        return true
-    })
+		}
+		// If we return true, we keep recursing under this AST node.
+		// If we return false, we won't visit anything under this AST node.
+		return true
+	})
 	return count
 }
 
