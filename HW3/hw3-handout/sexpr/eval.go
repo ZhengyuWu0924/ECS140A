@@ -15,6 +15,7 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 	if expr == nil {
 		return nil, ErrEval
 	}
+	//fmt.Printf("%s\n", expr.SExprString())
 	if (expr.atom == nil || expr.atom.literal == "NIL") && expr.car == nil && expr.cdr == nil {
 		return expr, nil
 	}
@@ -34,18 +35,26 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				if expr.car.isAtom() == false {
 					res,err := expr.car.Eval() 
 					if err != nil || res.atom.typ != tokenNumber {
-						return nil, err
+						return nil, ErrEval
 					}
 					total.Add(total, res.atom.num)
 				} else {					
 					newExpr := expr.cdr
+					if newExpr.car != nil && newExpr.car.atom.typ != tokenNumber {
+						res,err := newExpr.car.Eval() 
+						if err != nil || res.atom.typ != tokenNumber {
+							return nil, ErrEval
+						}
+						total.Add(total, res.atom.num)
+						newExpr = newExpr.cdr
+					}
 					for newExpr != nil {
 						if newExpr.atom == nil {
 							break;
 						}
 						res,err := newExpr.Eval() 
 						if err != nil || res.atom.typ != tokenNumber {
-							return nil, err
+							return nil, ErrEval
 						}
 						total.Add(total, res.atom.num)
 						newExpr = newExpr.cdr
@@ -64,18 +73,26 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				if expr.car.isAtom() == false {
 					res,err := expr.car.Eval() 
 					if err != nil || res.atom.typ != tokenNumber {
-						return nil, err
+						return nil, ErrEval
 					}
 					total.Mul(total, res.atom.num)
 				} else {					
 					newExpr := expr.cdr
+					if newExpr.car != nil && newExpr.car.atom.typ != tokenNumber {
+						res,err := newExpr.car.Eval() 
+						if err != nil || res.atom.typ != tokenNumber {
+							return nil, ErrEval
+						}
+						total.Mul(total, res.atom.num)
+						newExpr = newExpr.cdr
+					}
 					for newExpr != nil {
 						if newExpr.atom == nil {
 							break;
 						}
 						res,err := newExpr.Eval() 
 						if err != nil || res.atom.typ != tokenNumber {
-							return nil, err
+							return nil, ErrEval
 						}
 						total.Mul(total, res.atom.num)
 						newExpr = newExpr.cdr
@@ -89,20 +106,14 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		}
 		if expr.atom.literal == "CAR" {
 			expr = expr.cdr
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.isNil() == true || expr.cdr.atom != nil {
+			if expr == nil || expr.isNil() == true || expr.cdr.atom != nil {
 				return nil, ErrEval
 			}
 			if expr.atom.literal == "NIL" && expr.cdr != nil && expr.cdr.isNil() == true {
 				return expr.cdr, nil
 			}
 			expr = expr.car
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.cdr == nil {
+			if expr == nil || expr.cdr == nil {
 				return nil, ErrEval
 			}
 			if expr.atom.typ == tokenQuote {
@@ -118,10 +129,7 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		}
 		if expr.atom.literal == "CDR" {
 			expr = expr.cdr
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.isNil() == true {
+			if expr == nil || expr.isNil() == true {
 				return nil, ErrEval
 			}
 			if expr.atom.literal == "NIL" && expr.cdr != nil && expr.cdr.isNil() == true {
@@ -154,31 +162,30 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		}
 		if expr.atom.literal == "ATOM" {
 			expr = expr.cdr
-			if expr.isNil() == true {
+			if expr.cdr == nil ||  expr.isNil() == true{
+				return nil, ErrEval
+			}
+			if expr.cdr.isNil() == false && expr.cdr.atom.literal != "NIL" {
 				return nil, ErrEval
 			}
 			if expr != nil {
 				expr = expr.car
 				res, err := expr.Eval() 
 				if err != nil {
-					return nil, err
+					return nil, ErrEval
 				}
 				if res.isAtom() == true {
 					tok := &token{typ: tokenSymbol, literal: "T"}
 					return &SExpr{atom: tok, car: nil, cdr: nil}, nil
 				} else {
-					tok := &token{typ: tokenSymbol, literal: "NIL"}
-					return &SExpr{atom: tok, car: nil, cdr: nil}, nil
+					return &SExpr{atom: nil, car: nil, cdr: nil}, nil
 				}
 			}
 			return nil, ErrEval
 		}
 		if expr.atom.literal == "LISTP" {
 			expr = expr.cdr 
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.atom == nil && expr.car == nil && expr.cdr == nil {
+			if expr == nil || expr.atom == nil && expr.car == nil && expr.cdr == nil {
 				return nil, ErrEval
 			}
 			if expr.cdr.atom != nil && expr.cdr.atom.literal != "NIL" {
@@ -198,20 +205,15 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return &SExpr{atom: tok, car: nil, cdr: nil}, nil
 			}
 			if res.cdr == nil {
-				tok := &token{typ: tokenSymbol, literal: "NIL"}
-				return &SExpr{atom: tok, car: nil, cdr: nil}, nil
+				return &SExpr{atom: nil, car: nil, cdr: nil}, nil
 			} else {
 				tok := &token{typ: tokenSymbol, literal: "T"}
 				return &SExpr{atom: tok, car: nil, cdr: nil}, nil
 			}
-			return nil, ErrEval
 		}
 		if expr.atom.literal == "LENGTH" {
 			expr = expr.cdr
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.atom == nil || expr.atom.typ != tokenQuote {
+			if expr == nil || expr.atom == nil || expr.atom.typ != tokenQuote {
 				return nil, ErrEval
 			}
 			expr = expr.car
@@ -226,10 +228,7 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		}
 		if expr.atom.literal == "CONS" {
 			expr = expr.cdr
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.car == nil {
+			if expr == nil || expr.car == nil {
 				return nil, ErrEval
 			}
 			res1, err := expr.car.Eval()
@@ -237,10 +236,7 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.cdr 
-			if expr == nil {
-				return nil, ErrEval
-			}
-			if expr.cdr.atom != nil{
+			if expr == nil || expr.cdr.atom != nil{
 				return nil, ErrEval
 			}
 			expr = expr.car 
@@ -249,16 +245,22 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			}
 			res2, err := expr.Eval()
 			if err != nil {
-				return nil, err
+				return nil, ErrEval
 			}
 			return &SExpr{atom: res1.atom, car: res1, cdr: res2}, nil
 		}
 		if expr.atom.literal == "ZEROP" {
 			expr = expr.cdr
-			if expr == nil {
+			if expr == nil || expr.cdr == nil {
+				return nil, ErrEval
+			}
+			if expr.cdr.isNil() == false && expr.cdr.atom.literal != "NIL" {
 				return nil, ErrEval
 			}
 			if expr.atom == nil {
+				return nil, ErrEval
+			}
+			if expr.car.atom.typ == tokenNumber && expr.car.isAtom() == false {
 				return nil, ErrEval
 			}
 			res, err := expr.Eval()
@@ -271,13 +273,17 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			} else {
 				return &SExpr{atom: nil, car: nil, cdr: nil}, nil
 			} 
+		}
+		if expr.atom.literal != "QUOTE" {
 			return nil, ErrEval
 		}
-		return nil, ErrEval
 	} 
 	if expr.atom.literal == "QUOTE" {
 		expr = expr.cdr
-		if expr == nil {
+		if expr == nil || expr.cdr == nil {
+			return nil, ErrEval
+		}
+		if expr.cdr.atom != nil && expr.cdr.atom.literal != "NIL" {
 			return nil, ErrEval
 		}
 		expr = expr.car
@@ -286,15 +292,11 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		} else {
 			return expr, nil
 		}
-		return nil, ErrEval
 	}
-	return expr, nil
+	return nil, ErrEval
 }
 
 func (expr *SExpr) getLength() (*SExpr, error) {
-	if expr == nil {
-		return nil, ErrEval
-	}
 	if expr.atom == nil && expr.car == nil && expr.cdr == nil {
 		tok := &token{typ: tokenNumber, num: big.NewInt(0)}
 		return &SExpr{atom: tok, car: nil, cdr: nil}, nil 
