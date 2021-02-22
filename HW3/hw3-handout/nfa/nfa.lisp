@@ -1,7 +1,12 @@
-;; You may define helper functions here
+(defun recursive-calls (transition state-list final input)
+    (cond
+    ((null state-list) nil)
+    (t (or (reachable transition (car state-list) final input)
+        (recursive-calls transition (cdr state-list) final input))))
+)
 
 (defun reachable (transition start final input)
-    ;; TODO: Incomplete function
-    ;; The next line should not be in your solution.
-    (list 'incomplete)
+    (cond
+    ((null input) (if (equal start final) t nil))
+    (t (recursive-calls transition (funcall transition start (car input)) final (cdr input))))
 )
