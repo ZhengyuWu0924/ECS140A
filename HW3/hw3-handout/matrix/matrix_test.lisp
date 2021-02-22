@@ -38,6 +38,9 @@
     (assert-equal '( (1 2 3 4) ) (transpose '( (1) (2) (3) (4) )))
     (assert-equal '( (1 2) (3 4) ) (transpose '( (1 3) (2 4) )))
     (assert-equal '( (1 3) (2 4) ) (transpose '( (1 2) (3 4) )))
+    ; added test cases:
+    (assert-equal '( (1 2 3 4) (5 6 7 8) (9 10 11 12)) (transpose '( (1 5 9) (2 6 10) (3 7 11) (4 8 12))))
+    (assert-equal '( (1 5 9) (2 6 10) (3 7 11) (4 8 12)) (transpose '( (1 2 3 4) (5 6 7 8) (9 10 11 12))))
 )
 
 (define-test test-are-neighbors
@@ -48,6 +51,10 @@
     (assert-equal T   (are-neighbors '( (1 2 3) (4 5 6) ) 1 2))
     (assert-equal NIL (are-neighbors '( (1 2 3) (4 5 6) ) 2 6))
     (assert-equal NIL (are-neighbors '( (1 2 3) (4 5 6) ) 1 6))
+    ; added test cases:
+    (assert-equal T   (are-neighbors '( (1 2 3 4) (5 6 7 8) ) 3 7))
+    (assert-equal T   (are-neighbors '( (1 2 2 4) (5 6 7 8) ) 2 2))
+    (assert-equal NIL (are-neighbors '( (1) (3) (3) ) 1 1))
 )
 
 ;;;;;;;;;;;;;;;;;
