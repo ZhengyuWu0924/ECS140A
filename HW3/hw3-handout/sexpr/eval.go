@@ -15,7 +15,6 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 	if expr == nil {
 		return nil, ErrEval
 	}
-	//fmt.Printf("%s\n", expr.SExprString())
 	if (expr.atom == nil || expr.atom.literal == "NIL") && expr.car == nil && expr.cdr == nil {
 		return expr, nil
 	}
@@ -113,19 +112,16 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return expr.cdr, nil
 			}
 			expr = expr.car
-			if expr == nil || expr.cdr == nil {
+			if expr == nil || expr.cdr == nil || expr.atom.typ != tokenQuote {
 				return nil, ErrEval
 			}
-			if expr.atom.typ == tokenQuote {
-				expr = expr.cdr
-				res := expr
-				for expr != nil {
-					res = expr
-					expr = expr.car
-				}
-				return res, nil
+			expr = expr.cdr
+			res := expr
+			for expr != nil {
+				res = expr
+				expr = expr.car
 			}
-			return nil, ErrEval
+			return res, nil
 		}
 		if expr.atom.literal == "CDR" {
 			expr = expr.cdr
@@ -136,29 +132,25 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return expr.cdr, nil
 			}
 			expr = expr.car
-			if expr == nil {
+			if expr == nil || expr.atom.typ != tokenQuote {
 				return nil, ErrEval
 			}
-			if expr.atom.typ == tokenQuote {
-				expr = expr.cdr
-				res := expr
-				for expr != nil {
-					res = expr
-					if expr.cdr != nil && expr.cdr.atom == nil {
-						expr = expr.car
-					} else {
-						expr = expr.cdr
-						if expr == nil {
-							return nil, ErrEval
-						} else {
-							res = expr
-							break
-						}
-					}
+			expr = expr.cdr
+			res := expr
+			for expr != nil {
+				res = expr
+				if expr.cdr != nil && expr.cdr.atom == nil {
+					expr = expr.car
+				} else {
+					expr = expr.cdr
+					if expr != nil {
+						res = expr
+						break
+					} 
 				}
-				return res, nil
 			}
-			return nil, ErrEval
+			return res, nil
+			
 		}
 		if expr.atom.literal == "ATOM" {
 			expr = expr.cdr
@@ -181,7 +173,6 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 					return &SExpr{atom: nil, car: nil, cdr: nil}, nil
 				}
 			}
-			return nil, ErrEval
 		}
 		if expr.atom.literal == "LISTP" {
 			expr = expr.cdr 
@@ -192,9 +183,6 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.car
-			if expr == nil {
-				return nil, ErrEval
-			}
 			res, err := expr.Eval()
 			if err != nil {
 				return nil, ErrEval
@@ -217,14 +205,11 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.car
-			if expr == nil {
-				return nil, ErrEval
+			if expr != nil {expr = expr.cdr
+				if expr.car != nil {
+					return expr.car.getLength();
+				}
 			}
-			expr = expr.cdr
-			if expr.car != nil {
-				return expr.car.getLength();
-			}
-			return nil, ErrEval
 		}
 		if expr.atom.literal == "CONS" {
 			expr = expr.cdr
@@ -240,9 +225,6 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.car 
-			if expr == nil {
-				return nil, ErrEval
-			}
 			res2, err := expr.Eval()
 			if err != nil {
 				return nil, ErrEval
@@ -287,11 +269,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			return nil, ErrEval
 		}
 		expr = expr.car
-		if expr == nil {
-			return nil ,ErrEval
-		} else {
+		if expr != nil {
 			return expr, nil
-		}
+		} 
 	}
 	return nil, ErrEval
 }
