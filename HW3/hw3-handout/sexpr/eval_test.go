@@ -8,6 +8,10 @@ func TestEvalInvalid(t *testing.T) {
 	for idx, test := range []string{
 		"x",
 		"(1)",
+		"(+ (+ 5 x) 6)",
+		"(* (* 5 x) 6)",
+		"(+ 1 (+ 2 x))",
+		"(* 1 (* 2 x))",
 		"(LENGTH '(1 . 2))",
 		"(QUOTE)",
 		"(QUOTE 1 2 3 4)",
@@ -141,7 +145,7 @@ func TestEvalCAR(t *testing.T) {
 	for idx, test := range []struct {
 		input, expected string
 	}{
-		// {"(CAR NIL)", "NIL"},
+		 {"(CAR NIL)", "NIL"},
 		{"(CAR '(1 2))", "1"},
 		{"(CAR '(1 . 2))", "1"},
 	} {
@@ -286,6 +290,7 @@ func TestEvalProduct(t *testing.T) {
 		{"(* 1 (* 2 3))", "6"},
 		{"(* 1 (* -2 3))", "-6"},
 		{"(* 1 (* 2 3) 0)", "0"},
+		{"(* 1 (* 2 3) -4)", "-24"},
 		{
 			"(* 985617513576545648975121564 79841561894552416515616548)",
 			"78693241714576626131944167058185924258870542710041072",
