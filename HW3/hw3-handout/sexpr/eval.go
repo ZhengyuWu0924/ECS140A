@@ -13,9 +13,9 @@ var ErrEval = errors.New("eval error")
 var flag = 0
 
 func (expr *SExpr) Eval() (*SExpr, error) {
-	if expr == nil {
-		return nil, ErrEval
-	}
+	// if expr == nil {
+	// 	return nil, ErrEval
+	// }
 	if (expr.atom == nil || expr.atom.literal == "NIL") && expr.car == nil && expr.cdr == nil {
 		return expr, nil
 	}
@@ -36,7 +36,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			if expr.cdr != nil {
 				total := big.NewInt(0)
 				if expr.car.isAtom() == false {
-					res,err := expr.car.Eval() 
+					flag++
+					res,err := expr.car.Eval()
+					flag-- 
 					if err != nil || res.atom.typ != tokenNumber {
 						return nil, ErrEval
 					}
