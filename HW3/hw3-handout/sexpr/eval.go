@@ -10,6 +10,7 @@ import (
 // See also https://golang.org/pkg/errors/#New
 // and // https://golang.org/pkg/builtin/#error
 var ErrEval = errors.New("eval error")
+var flag = 0
 
 func (expr *SExpr) Eval() (*SExpr, error) {
 	if expr == nil {
@@ -19,6 +20,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 		return expr, nil
 	}
 	if expr.atom.typ == tokenNumber {
+		if flag == 0 && expr.cdr != nil {
+			return nil, ErrEval
+		}
 		if expr.cdr == nil {
 			return expr, nil
 		} else {
@@ -40,7 +44,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				} else {					
 					newExpr := expr.cdr
 					if newExpr.car != nil && newExpr.car.atom.typ != tokenNumber {
-						res,err := newExpr.car.Eval() 
+						flag++
+						res,err := newExpr.car.Eval()
+						flag-- 
 						if err != nil || res.atom.typ != tokenNumber {
 							return nil, ErrEval
 						}
@@ -51,7 +57,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 						if newExpr.atom == nil {
 							break;
 						}
-						res,err := newExpr.Eval() 
+						flag++
+						res,err := newExpr.Eval()
+						flag-- 
 						if err != nil || res.atom.typ != tokenNumber {
 							return nil, ErrEval
 						}
@@ -70,7 +78,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			if expr.cdr != nil {
 				total := big.NewInt(1)
 				if expr.car.isAtom() == false {
-					res,err := expr.car.Eval() 
+					flag++
+					res,err := expr.car.Eval()
+					flag-- 
 					if err != nil || res.atom.typ != tokenNumber {
 						return nil, ErrEval
 					}
@@ -78,7 +88,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				} else {					
 					newExpr := expr.cdr
 					if newExpr.car != nil && newExpr.car.atom.typ != tokenNumber {
-						res,err := newExpr.car.Eval() 
+						flag++
+						res,err := newExpr.car.Eval()
+						flag-- 
 						if err != nil || res.atom.typ != tokenNumber {
 							return nil, ErrEval
 						}
@@ -89,7 +101,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 						if newExpr.atom == nil {
 							break;
 						}
-						res,err := newExpr.Eval() 
+						flag++
+						res,err := newExpr.Eval()
+						flag-- 
 						if err != nil || res.atom.typ != tokenNumber {
 							return nil, ErrEval
 						}
@@ -162,7 +176,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			}
 			if expr != nil {
 				expr = expr.car
-				res, err := expr.Eval() 
+				flag++
+				res, err := expr.Eval()
+				flag-- 
 				if err != nil {
 					return nil, ErrEval
 				}
@@ -183,7 +199,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.car
+			flag++
 			res, err := expr.Eval()
+			flag--
 			if err != nil {
 				return nil, ErrEval
 			}
@@ -216,7 +234,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			if expr == nil || expr.car == nil {
 				return nil, ErrEval
 			}
+			flag++
 			res1, err := expr.car.Eval()
+			flag--
 			if err != nil {
 				return nil, ErrEval
 			}
@@ -225,7 +245,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 				return nil, ErrEval
 			}
 			expr = expr.car 
+			flag++
 			res2, err := expr.Eval()
+			flag--
 			if err != nil {
 				return nil, ErrEval
 			}
@@ -245,7 +267,9 @@ func (expr *SExpr) Eval() (*SExpr, error) {
 			if expr.car.atom.typ == tokenNumber && expr.car.isAtom() == false {
 				return nil, ErrEval
 			}
+			flag++
 			res, err := expr.Eval()
+			flag--
 			if err != nil {
 				return nil, ErrEval
 			}
