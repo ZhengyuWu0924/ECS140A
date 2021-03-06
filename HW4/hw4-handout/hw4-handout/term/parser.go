@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+// use the released solution from instructor
+
 // ErrParser is the error value returned by the Parser if the string is not a
 // valid term.
 // See also https://golang.org/pkg/errors/#New
