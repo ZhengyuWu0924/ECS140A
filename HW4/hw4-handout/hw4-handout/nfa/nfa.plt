@@ -12,6 +12,7 @@ test(nfaExp2, [nondet]) :- reachable(expTransitions, 0, 2, [b]).
 test(nfaExp3, [nondet]) :- reachable(expTransitions, 0, 1, [a, b, a]).
 test(nfaExp4, [fail])   :- reachable(expTransitions, 0, 1, [a, b, a, b]).
 test(nfaExp5, [nondet]) :- reachable(expTransitions, 0, 2, [a, b, a]).
+test(nfaExp6, [nondet]) :- reachable(expTransitions, 0, 0, []).
 
 test(nfaFoo1, [nondet]) :- reachable(fooTransitions, 0, 3, [a, b]).
 test(nfaFoo2, [nondet]) :- reachable(fooTransitions, 0, 3, [a, c]).
