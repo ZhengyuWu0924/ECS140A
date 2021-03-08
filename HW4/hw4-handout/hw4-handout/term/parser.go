@@ -29,19 +29,19 @@ type Parser interface {
 // NewParser creates a struct of a type that satisfies the Parser interface.
 func NewParser() Parser {
 	return &ParserImpl{
-		lex: nil,
-		peekTok: nil,
-		terms: make(map[string]*Term),
-		termID: make(map[*Term]int),
+		lex:         nil,
+		peekTok:     nil,
+		terms:       make(map[string]*Term),
+		termID:      make(map[*Term]int),
 		termCounter: 0,
 	}
 }
 
 type ParserImpl struct {
-	lex *lexer
-	peekTok *Token
-	terms map[string]*Term
-	termID map[*Term]int
+	lex         *lexer
+	peekTok     *Token
+	terms       map[string]*Term
+	termID      map[*Term]int
 	termCounter int
 }
 
@@ -57,7 +57,7 @@ func (p *ParserImpl) backToken(tok *Token) {
 	p.peekTok = tok
 }
 
-func (p *ParserImpl) Parse(input string) (*Term, error){
+func (p *ParserImpl) Parse(input string) (*Term, error) {
 	p.lex = newLexer(input)
 	p.peekTok = nil
 
@@ -69,7 +69,7 @@ func (p *ParserImpl) Parse(input string) (*Term, error){
 		return nil, nil
 	}
 	p.backToken(tok)
-	
+
 	term, err := p.parseNextTerm()
 	if err != nil {
 		return nil, ErrParser
@@ -112,7 +112,7 @@ func (p *ParserImpl) parseNextTerm() (*Term, error) {
 		if err != nil {
 			return nil, err
 		}
-		for ;nxt.typ == tokenComma; nxt, err = p.nextToken() {
+		for ; nxt.typ == tokenComma; nxt, err = p.nextToken() {
 			arg, err = p.parseNextTerm()
 			if err != nil {
 				return nil, err
@@ -146,9 +146,9 @@ func (p *ParserImpl) mkCompoundTerm(functor *Term, args []*Term) *Term {
 	term, ok := p.terms[key]
 	if !ok {
 		term = &Term{
-			Typ: TermCompound,
+			Typ:     TermCompound,
 			Functor: functor,
-			Args: args,
+			Args:    args,
 		}
 		p.insertTerm(term, key)
 	}
