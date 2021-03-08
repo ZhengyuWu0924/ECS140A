@@ -50,5 +50,14 @@ test(nfaLang12, [fail])   :- reachable(langTransitions, 1, 1, [a, b, a]).
 test(nfaLang13, [fail])   :- reachable(langTransitions, 1, 0, [a, a, a]).
 test(nfaLang14, [nondet])   :- reachable(langTransitions, 1, 0, [a, b, a]).
 
+test(nfaMy1, [nondet]) :- reachable(myTransitions, 0, 1, [a]).
+test(nfaMy2, [nondet]) :- reachable(myTransitions, 0, 2, [a]).
+test(nfaMy3, [fail]) :- reachable(myTransitions, 0, 3, [a]).
+test(nfaMy4, [nondet]) :- reachable(myTransitions, 0, 3, [b]).
+test(nfaMy5, [fail]) :- reachable(myTransitions, 0, 1, [a, a, b]).
+test(nfaMy6, [nondet]) :- reachable(myTransitions, 0, 4, [c]).
+test(nfaMy7, [nondet]) :- reachable(myTransitions, 0, 4, [a, b, c]).
+test(nfaMy8, [nondet]) :- reachable(myTransitions, 0, 3, [a, b, c]).
+test(nfaMy9, [fail]) :- reachable(myTransitions, 0, 2, [a, b, c]).
 
 :- end_tests(nfa).
