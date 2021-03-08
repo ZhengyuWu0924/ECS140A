@@ -4,6 +4,7 @@ import (
 	"errors"
  	// "hw4/disjointset"
 	"hw4/term"
+	//"fmt"
 )
 
 // ErrUnifier is the error value returned by the Parser if the string is not a
@@ -58,17 +59,11 @@ func (u *UnifierImpl) Unify(s *term.Term, t *term.Term) (UnifyResult, error) {
 }
 
 func (u *UnifierImpl) unifClosure(s *term.Term, t *term.Term) error {
-	if s, t := u.find(s), u.find(t); s != t {
-		// intialize schemas
-		var ss, st *term.Term
-		var ok bool
-		if ss, ok = u.schema[s]; !ok {
-			u.schema[s] = s
-		}
-		if st, ok = u.schema[t]; !ok {
-			u.schema[t] = t
-		}
-		ss, st = u.schema[s], u.schema[t]
+	u.init(s)
+	u.init(t)
+	s, t = u.find(s), u.find(t)
+	if s != t {
+		ss, st := u.schema[s], u.schema[t]
 		if (ss.Typ != term.TermVariable && st.Typ != term.TermVariable) {
 			var ssLiteral, stLiteral string
 			var ssArgsLength, stArgsLength int = 0, 0
@@ -96,7 +91,9 @@ func (u *UnifierImpl) unifClosure(s *term.Term, t *term.Term) error {
 				u.union(s, t)
 				if ssArgsLength > 0 {
 					for i := range ss.Args {
-						u.unifClosure(ss.Args[i], st.Args[i])
+						if err := u.unifClosure(ss.Args[i], st.Args[i]); err != nil {
+							return ErrUnifier
+						}
 					}
 				}
 			} else {
@@ -110,81 +107,45 @@ func (u *UnifierImpl) unifClosure(s *term.Term, t *term.Term) error {
 }
 
 func (u *UnifierImpl) findSolution(s *term.Term) error {
+	u.init(s)
 	s = u.schema[u.find(s)]
-	if u.acyclic[s] == true {
+	if u.acyclic[s] {
 		return nil
 	}
-	if u.visited[s] == true {
+	if u.visited[s] {
 		return ErrUnifier
 	}
 	if s.Typ == term.TermCompound {
 		u.visited[s] = true
-		for _, value := range s.Args {
-			u.findSolution(value)
+		for _, arg := range s.Args {
+			if err := u.findSolution(arg); err != nil {
+				return ErrUnifier
+			}
 		}
 		u.visited[s] = false
 	}
 	u.acyclic[s] = true
-	for _, val := range u.vars[u.find(s)] {
-		if val != s {
-			u.result[val] = s
+	for _, x := range u.vars[u.find(s)] {
+		if x != s {
+			u.result[x] = s
 		}
 	}
 	return nil
 }
 
 func (u *UnifierImpl) union(s *term.Term, t *term.Term) {
-	sizeS := u.size[s]
-	sizeT := u.size[t]
+	sizeS, sizeT := u.size[s], u.size[t]
 	if sizeS >= sizeT {
 		u.size[s] = sizeS + sizeT
-		var list []*term.Term
-		for _, item := range s.Args {
-			if item.Typ == term.TermVariable {
-				list = append(list, item)
-			}
-		}
-		for _, item := range t.Args {
-			if item.Typ == term.TermVariable {
-				list = append(list, item)
-			}
-		}
-		u.vars[s] = list
-		_, ok := u.schema[s]
-		if !ok {
-			u.schema[s] = s
-		}
+		u.vars[s] = append(u.vars[s], u.vars[t]...)
 		if u.schema[s].Typ == term.TermVariable {
-			_, ok := u.schema[t]
-			if !ok {
-				u.schema[t] = t
-			}
 			u.schema[s] = u.schema[t]
 		}
 		u.class[t] = s
 	} else {
-		u.size[t] = sizeS + sizeT
-		var list []*term.Term
-		for _, item := range t.Args {
-			if item.Typ == term.TermVariable {
-				list = append(list, item)
-			}
-		}
-		for _, item := range s.Args {
-			if item.Typ == term.TermVariable {
-				list = append(list, item)
-			}
-		}
-		u.vars[t] = list
-		_, ok := u.schema[t]
-		if !ok {
-			u.schema[t] = t
-		}
+		u.size[t] = sizeT + sizeS
+		u.vars[t] = append(u.vars[t], u.vars[s]...)
 		if u.schema[t].Typ == term.TermVariable {
-			_, ok := u.schema[s]
-			if !ok {
-				u.schema[s] = s
-			}
 			u.schema[t] = u.schema[s]
 		}
 		u.class[s] = t
@@ -192,15 +153,26 @@ func (u *UnifierImpl) union(s *term.Term, t *term.Term) {
 }
 
 func (u *UnifierImpl) find(s *term.Term) *term.Term {
-	t := &term.Term{}
-	_, ok := u.class[s]
-	if !ok {
-		u.class[s] = s
-	}
+	var t *term.Term
 	if u.class[s] == s {
 		return s
 	}
 	t = u.find(u.class[s])
 	u.class[s] = t
 	return t
+}
+
+func (u *UnifierImpl) init(s *term.Term) {
+	if _, ok := u.class[s]; !ok {
+		u.class[s] = s
+		u.schema[s] = s
+		u.size[s] = 1
+		u.visited[s] = false
+		u.acyclic[s] = false
+		if s.Typ == term.TermVariable {
+			u.vars[s] = []*term.Term{s}
+		} else {
+			u.vars[s] = []*term.Term{}
+		}
+	}
 }
