@@ -1,5 +1,9 @@
 package nfa
 
+import (
+	"sync"
+)
+
 // A nondeterministic Finite Automaton (NFA) consists of states,
 // symbols in an alphabet, and a transition function.
 
@@ -24,6 +28,39 @@ func Reachable(
 	// `input` is a (possible empty) list of symbols to apply.
 	input []rune,
 ) bool {
-	// TODO
-	panic("TODO: implement this!")
+	var (
+		sema = make(chan struct{}, 1)
+		answer bool
+	)
+	reachable_concurrent(transitions, start, final, input, sema, &answer)
+	return answer
+}
+
+func reachable_concurrent(
+	transitions TransitionFunction,
+	start, final state,
+	input []rune,
+	sema chan struct{},
+	answer *bool,
+) {
+	if len(input) == 0 {
+		if start == final {
+			sema <- struct{}{}
+			*answer = true
+			<-sema
+		}
+	} else {
+		var wg sync.WaitGroup
+		for _, next := range transitions(start, input[0]) {
+			wg.Add(1)
+			go func(next state) {
+				defer wg.Done()
+				reachable_concurrent(transitions, next, final, input[1:], sema, answer)
+			}(next)
+			wg.Wait()
+			if *answer {
+				return
+			}
+		}
+	}
 }
